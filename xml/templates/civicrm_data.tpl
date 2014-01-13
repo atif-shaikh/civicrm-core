@@ -1558,3 +1558,5 @@ SELECT @fieldID := max(id) FROM civicrm_price_field WHERE name = 'contribution_a
 INSERT INTO `civicrm_price_field_value` (  `price_field_id`, `name`, `label`, `amount`, `weight`, `is_default`, `is_active`, `financial_type_id`)
 VALUES ( @fieldID, 'contribution_amount', 'Contribution Amount', '1', '1', '0', '1', 1);
 
+INSERT INTO `civicrm_payment_processor_type` (`id`, `name`, `title`, `description`, `is_active`, `is_default`, `user_name_label`, `password_label`, `signature_label`, `subject_label`, `class_name`, `url_site_default`, `url_api_default`, `url_recur_default`, `url_button_default`, `url_site_test_default`, `url_api_test_default`, `url_recur_test_default`, `url_button_test_default`, `billing_mode`, `is_recur`, `payment_type`) 
+VALUES (NULL, 'EBS', 'EBS Payment Gateway', NULL, 1, 0, 'Account ID', 'Secret Key', NULL, NULL, 'Payment_Ebs', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 4, NULL, 1)
