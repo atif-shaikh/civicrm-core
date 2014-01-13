@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<menu>
+	<item>
+		<path>civicrm/Mypage/view/Contact</path>
+		<page_callback>CRM_Mypage_Page_View_Contact</page_callback>
+	</item>
+	
+	<item>
+		<path>civicrm/Mypage/form/AddContact</path>
+		<page_callback>CRM_Mypage_Form_AddContact</page_callback>
+	</item>
+</menu>	

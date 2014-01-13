@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/greeter</path>
+    <page_callback>CRM_Myextension_Page_Greeter</page_callback>
+    <title>Greeter</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/favcolor</path>
+    <page_callback>CRM_Myextension_Form_FavoriteColor</page_callback>
+    <title>FavoriteColor</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+</menu>
