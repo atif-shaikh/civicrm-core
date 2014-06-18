@@ -50,6 +50,8 @@ class CRM_Admin_Form_Setting_Miscellaneous extends CRM_Admin_Form_Setting {
     'secondDegRelPermissions' => CRM_Core_BAO_Setting::SYSTEM_PREFERENCES_NAME,
   );
 
+  public $phpINIMaxUploadFileSize = NULL;
+
   /**
    * Function to build the form
    *
@@ -120,6 +122,12 @@ class CRM_Admin_Form_Setting_Miscellaneous extends CRM_Admin_Form_Setting {
   static function formRule($fields, $files, $options) {
     $errors = array();
 
+    // get Max Upload Size from php.ini
+    $uploadMaxFilesize = (int) ini_get('upload_max_filesize');
+    if ($fields['maxFileSize'] > $uploadMaxFilesize) {
+      $errors['maxFileSize'] = ts('Max file size cannot exceed php.ini file size');
+    }
+
     if (!empty($fields['wkhtmltopdfPath'])) {
       // check and ensure that thi leads to the wkhtmltopdf binary
       // and it is a valid executable binary
@@ -156,6 +164,10 @@ class CRM_Admin_Form_Setting_Miscellaneous extends CRM_Admin_Form_Setting {
     $params = $this->controller->exportValues($this->_name);
 
     // get current logging status
+    // update max upload size in db as per php ini
+    $this->phpINIMaxUploadFileSize = (int) ini_get('upload_max_filesize');
+    $params['maxImportFileSize'] = $this->phpINIMaxUploadFileSize*1024*1024;
+    CRM_Core_BAO_ConfigSetting::create($params);
     $values = $this->exportValues();
 
     parent::postProcess();
