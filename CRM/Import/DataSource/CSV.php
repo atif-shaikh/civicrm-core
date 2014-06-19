@@ -71,8 +71,11 @@ class CRM_Import_DataSource_CSV extends CRM_Import_DataSource {
     $config = CRM_Core_Config::singleton();
 
     // FIXME: why do we limit the file size to 8 MiB if it's larger in config?
-    $uploadFileSize = $config->maxImportFileSize >= 8388608 ? 8388608 : $config->maxImportFileSize;
-    $uploadSize = round(($uploadFileSize / (1024 * 1024)), 2);
+    $uploadFileSize = $config->maxImportFileSize;
+    $uploadSize = $config->maxFileSize;
+    $postMaxSize = (int) ini_get('post_max_size');
+    if($uploadSize > $postMaxSize)
+      CRM_Core_Session::setStatus(ts("Please note that your Max file size exceeds Post Max Size (`post_max_size`) as defined in PHP.ini"), ts("Warning"), "alert");
     $form->assign('uploadSize', $uploadSize);
     $form->add('file', 'uploadFile', ts('Import Data File'), 'size=30 maxlength=255', TRUE);
 
