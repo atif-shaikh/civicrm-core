@@ -201,7 +201,9 @@ function setOrgName( ) {
 function setLocationDetails(contactID , reset) {
   var submittedCID = {/literal}"{$submittedOnBehalf}"{literal};
   var submittedOnBehalfInfo = {/literal}'{$submittedOnBehalfInfo}'{literal};
-  submittedOnBehalfInfo = cj.parseJSON(submittedOnBehalfInfo);
+  if(submittedOnBehalfInfo) {
+    submittedOnBehalfInfo = cj.parseJSON(submittedOnBehalfInfo);
+  }
   if (submittedCID == contactID) {
     cj.each(submittedOnBehalfInfo, function(key, value) {
       cj('#onbehalf_' + key ).val(value);
