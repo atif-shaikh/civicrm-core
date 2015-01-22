@@ -76,6 +76,8 @@ class CRM_Event_Form_Registration extends CRM_Core_Form {
    */
   public $_allowConfirmation;
 
+  public $_currentParticipant = 0;
+
   /**
    * Is participant requires approval
    *
@@ -1202,7 +1204,7 @@ WHERE  v.option_group_id = g.id
    *
    * @return array
    */
-  public static function validatePriceSet(&$form, $params) {
+  public static function validatePriceSet(&$form, $params, $checkAllOptions = TRUE) {
     $errors = array();
     $hasOptMaxValue = FALSE;
     if (!is_array($params) || empty($params)) {
@@ -1296,7 +1298,7 @@ WHERE  v.option_group_id = g.id
         }
       }
     }
-
+    //print_r($optionMaxValues);
     //validate for option max value.
     foreach ($optionMaxValues as $fieldId => $values) {
       $options = CRM_Utils_Array::value('options', $feeBlock[$fieldId], array());
@@ -1304,8 +1306,7 @@ WHERE  v.option_group_id = g.id
         $optMax = $optionsMaxValueDetails[$fieldId]['options'][$optId];
         $opDbCount = CRM_Utils_Array::value('db_total_count', $options[$optId], 0);
         $total += $opDbCount;
-        if ($optMax && $total > $optMax) {
-          $errors['soldOutOptions'][] = ts('Option %1 has sold out.', array(1 => $feeBlock[$fieldId]['options'][$optId]['label']));
+        if ($optMax && ($total > $optMax) && ($checkAllOptions || empty($opDbCount))) {
           if ($opDbCount && ($opDbCount >= $optMax)) {
             $errors[$currentParticipantNum]["price_{$fieldId}"]
               = ts('Sorry, this option is currently sold out.');
@@ -1327,11 +1328,12 @@ WHERE  v.option_group_id = g.id
       if (!is_array($values) || $values == 'skip') {
         continue;
       }
+
       if (empty($fieldSelected[$pNum])) {
         $errors[$pNum]['_qf_default'] = ts('Select at least one option from Event Fee(s).');
       }
     }
-
+    //print_r($errors);die;
     return $errors;
   }
 

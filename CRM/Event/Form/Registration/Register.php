@@ -737,7 +737,7 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
     $currentOptionsCount = self::getPriceSetOptionCount($form);
     $recordedOptionsCount = CRM_Event_BAO_Participant::priceSetOptionsCount($form->_eventId, $skipParticipants);
     $optionFullTotalAmount = 0;
-
+    //print_r($form->get('soldOutForParticipants'));die;
     foreach ($form->_feeBlock as & $field) {
       $optionFullIds = array();
       $fieldId = $field['id'];
@@ -754,7 +754,7 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
         $totalCount = $currentTotalCount + $dbTotalCount;
         $isFull = FALSE;
         if ($maxValue &&
-          (($totalCount > $maxValue) || ($totalCount + $count > $maxValue))
+          ((($totalCount >= $maxValue) && (empty($form->_lineItem[$form->_currentParticipant][$optId]['price_field_id']) || $dbTotalCount >= $maxValue)))
         ) {
           $isFull = TRUE;
           $optionFullIds[$optId] = $optId;
@@ -767,6 +767,9 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
             if (!empty($defaultPricefieldIds) && in_array($optId, $defaultPricefieldIds)) {
               unset($optionFullIds[$optId]);
             }
+          }
+          if (!empty($form->get('soldOutForParticipants')[$form->_currentParticipant]["price_{$fieldId}"][$optId])) {
+            $option['soldOutForParticipant'] = $optId;
           }
         }
         //here option is not full,
@@ -794,6 +797,7 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
       //finally get option ids in.
       $field['option_full_ids'] = $optionFullIds;
     }
+    //print_r($form->_feeBlock);die;
     $form->assign('optionFullTotalAmount', $optionFullTotalAmount);
   }
 
@@ -854,7 +858,7 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
       //format params.
       $formatted = self::formatPriceSetParams($self, $fields);
       $ppParams = array($formatted);
-      $priceSetErrors = self::validatePriceSet($self, $ppParams);
+      $priceSetErrors = self::validatePriceSet($self, $ppParams, FALSE);
       $primaryParticipantCount = self::getParticipantCount($self, $ppParams);
 
       //get price set fields errors in.
@@ -1081,7 +1085,14 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
         if ($params['tax_amount']) {
           $this->set('tax_amount', $params['tax_amount']);
         }
-        $this->set('lineItem', array($lineItem));
+        if (!empty($this->get('lineItem')) && is_array($this->get('lineItem'))) {
+          $submittedLineItems = $this->get('lineItem');
+          $submittedLineItems[$this->_currentParticipant] = $lineItem;
+        }
+        else {
+          $submittedLineItems = array($lineItem);
+        }
+        $this->set('lineItem', $submittedLineItems);
         $this->set('lineItemParticipantsCount', array($primaryParticipantCount));
       }
 
@@ -1120,8 +1131,15 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
         $params['invoiceID'] = $invoiceID;
       }
 
-      $this->_params = array();
-      $this->_params[] = $params;
+      if (!empty($this->get('params')) && is_array($this->get('params'))) {
+        $this->_params = $this->get('params');
+        $this->_params[$this->_currentParticipant] = $params;
+      }
+      else {
+        $this->_params = array();
+        $this->_params[] = $params;
+      }
+
       $this->set('params', $this->_params);
 
       if ($this->_paymentProcessor &&

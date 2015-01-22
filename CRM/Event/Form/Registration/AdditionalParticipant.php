@@ -66,6 +66,7 @@ class CRM_Event_Form_Registration_AdditionalParticipant extends CRM_Event_Form_R
     }
 
     $participantCnt = $participantNo + 1;
+    $this->_currentParticipant = $participantNo;
     $this->assign('formId', $participantNo);
     $this->_params = array();
     $this->_params = $this->get('params');
@@ -122,7 +123,7 @@ class CRM_Event_Form_Registration_AdditionalParticipant extends CRM_Event_Form_R
           }
         }
         if (!empty($optionsFull)) {
-          $unsetSubmittedOptions[$val['id']] = $optionsFull;
+          //$unsetSubmittedOptions[$val['id']] = $optionsFull;
         }
       }
     }
@@ -148,7 +149,7 @@ class CRM_Event_Form_Registration_AdditionalParticipant extends CRM_Event_Form_R
 
     //reset values for all options those are full.
     if (!empty($unsetSubmittedOptions) && empty($_POST)) {
-      $this->resetElementValue($unsetSubmittedOptions);
+      //$this->resetElementValue($unsetSubmittedOptions);
     }
 
     //load default campaign from page.
@@ -466,7 +467,7 @@ class CRM_Event_Form_Registration_AdditionalParticipant extends CRM_Event_Form_R
         $totalParticipants = self::getParticipantCount($self, $allParticipantParams);
 
         //validate price field params.
-        $priceSetErrors = self::validatePriceSet($self, $allParticipantParams);
+        $priceSetErrors = self::validatePriceSet($self, $allParticipantParams, FALSE);
         $errors = array_merge($errors, CRM_Utils_Array::value($addParticipantNum, $priceSetErrors, array()));
 
         if (!$self->_allowConfirmation &&
@@ -822,7 +823,7 @@ class CRM_Event_Form_Registration_AdditionalParticipant extends CRM_Event_Form_R
 
         case 'select':
           $resetSubmitted = TRUE;
-          $element->_values = array();
+          //$element->_values = array();
           break;
       }
 
@@ -870,7 +871,9 @@ class CRM_Event_Form_Registration_AdditionalParticipant extends CRM_Event_Form_R
         }
       }
       else {
-        $values[$elementName][$keyId] = NULL;
+        if (!empty($keyId)) {
+          $values[$elementName][$keyId] = NULL;
+        }
       }
     }
   }
