@@ -260,6 +260,7 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
     }
     if ($this->_priceSetId && !empty($this->_feeBlock)) {
       foreach ($this->_feeBlock as $key => $val) {
+        $optionsFull = CRM_Utils_Array::value('option_full_ids', $val, array());
         foreach ($val['options'] as $keys => $values) {
           if ($values['is_default'] && empty($values['is_full'])) {
 
@@ -271,6 +272,13 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
             }
           }
         }
+        if (!empty($optionsFull)) {
+          $unsetSubmittedOptions[$val['id']] = $optionsFull;
+        }
+      }
+      //reset values for all options those are full.
+      if (!empty($unsetSubmittedOptions) && empty($_POST)) {
+        $this->resetElementValue($unsetSubmittedOptions);
       }
     }
 
@@ -659,6 +667,7 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
             $optionFullIds
           );
         }
+
       }
       $form->assign('priceSet', $form->_priceSet);
     }
@@ -796,6 +805,7 @@ class CRM_Event_Form_Registration_Register extends CRM_Event_Form_Registration {
 
       //finally get option ids in.
       $field['option_full_ids'] = $optionFullIds;
+
     }
     //print_r($form->_feeBlock);die;
     $form->assign('optionFullTotalAmount', $optionFullTotalAmount);

@@ -930,6 +930,118 @@ WHERE  v.option_group_id = g.id
     return $participant;
   }
 
+  /**
+   * Reset values for all options those are full.
+   *
+   */
+  public function resetElementValue($optionFullIds = array()) {
+    if (!is_array($optionFullIds) ||
+      empty($optionFullIds) ||
+      !$this->isSubmitted()
+    ) {
+      return;
+    }
+
+    foreach ($optionFullIds as $fldId => $optIds) {
+      $name = "price_$fldId";
+      if (!$this->elementExists($name)) {
+        continue;
+      }
+
+      $element = $this->getElement($name);
+      $eleType = $element->getType();
+
+      $resetSubmitted = FALSE;
+      switch ($eleType) {
+        case 'text':
+          if ($element->isFrozen()) {
+            $element->setValue('');
+            $resetSubmitted = TRUE;
+          }
+          break;
+
+        case 'group':
+          if (is_array($element->_elements)) {
+            foreach ($element->_elements as $child) {
+              $childType = $child->getType();
+              $methodName = 'getName';
+              if ($childType) {
+                $methodName = 'getValue';
+              }
+              if (in_array($child->{$methodName}(), $optIds) && $child->isFrozen()) {
+                if (!empty($this->_feeBlock[$fldId]['options'][$child->{$methodName}()]['soldOutForParticipant'])) {
+                  echo $child->{$methodName}();die;
+                  $resetSubmitted = FALSE;
+                  $child->updateAttributes(array('checked' => 'checked'));
+                  $child->setPersistantFreeze();
+                }
+                else {
+                  $resetSubmitted = TRUE;
+                  $child->updateAttributes(array('checked' => NULL));
+                }
+              }
+            }
+          }
+          break;
+
+        case 'select':
+          $resetSubmitted = TRUE;
+          $element->_values = array();
+          break;
+      }
+
+      //finally unset values from submitted.
+      if ($resetSubmitted) {
+        $this->resetSubmittedValue($name, $optIds);
+      }
+    }
+
+  }
+
+  /**
+   * @param string $elementName
+   * @param array $optionIds
+   */
+  public function resetSubmittedValue($elementName, $optionIds = array()) {
+    if (empty($elementName) ||
+      !$this->elementExists($elementName) ||
+      !$this->getSubmitValue($elementName)
+    ) {
+      return;
+    }
+    foreach (array(
+               'constantValues',
+               'submitValues',
+               'defaultValues',
+             ) as $val) {
+      $values = &$this->{"_$val"};
+      if (!is_array($values) || empty($values)) {
+        continue;
+      }
+      $eleVal = CRM_Utils_Array::value($elementName, $values);
+      if (empty($eleVal)) {
+        continue;
+      }
+      if (is_array($eleVal)) {
+        $found = FALSE;
+        foreach ($eleVal as $keyId => $ignore) {
+          if (in_array($keyId, $optionIds)) {
+            $found = TRUE;
+            unset($values[$elementName][$keyId]);
+          }
+        }
+        if ($found && empty($values[$elementName][$keyId])) {
+          $values[$elementName][$keyId] = NULL;
+        }
+      }
+      else {
+        if (!empty($keyId)) {
+          $values[$elementName][$keyId] = NULL;
+        }
+      }
+    }
+  }
+
   /* Calculate the total participant count as per params.
    *
    * @param array $params
